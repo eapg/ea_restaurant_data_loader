@@ -3,8 +3,8 @@ use Mix.Config
 # Configure your database
 config :ea_restaurant_data_loader, EaRestaurantDataLoader.Repo,
   username: "postgres",
-  password: "postgres",
-  database: "ea_restaurant_data_loader_dev",
+  password: "1234",
+  database: "ea_restaurant",
   hostname: "localhost",
   show_sensitive_data_on_connection_error: true,
   pool_size: 10

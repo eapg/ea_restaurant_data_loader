@@ -7,8 +7,8 @@ use Mix.Config
 # Run `mix help test` for more information.
 config :ea_restaurant_data_loader, EaRestaurantDataLoader.Repo,
   username: "postgres",
-  password: "postgres",
-  database: "ea_restaurant_data_loader_test#{System.get_env("MIX_TEST_PARTITION")}",
+  password: "1234",
+  database: "ea_restaurant_test#{System.get_env("MIX_TEST_PARTITION")}",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
 
