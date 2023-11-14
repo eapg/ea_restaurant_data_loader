@@ -6,9 +6,6 @@ defmodule EaRestaurantDataLoader.Repo.Migrations.CreateAppRefreshTokens do
       add :token, :string
       add :grant_type, :string
       add :app_client_id, references(:app_clients)
-
-      timestamps()
     end
-
   end
 end

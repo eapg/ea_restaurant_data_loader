@@ -14,9 +14,6 @@ defmodule EaRestaurantDataLoader.Repo.Migrations.CreateUsers do
       add :updated_by, :integer
       add :created_date, :naive_datetime
       add :updated_date, :naive_datetime
-
-      timestamps()
     end
-
   end
 end

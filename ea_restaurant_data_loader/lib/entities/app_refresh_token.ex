@@ -7,8 +7,6 @@ defmodule EaRestaurantDataLoader.AppRefreshToken do
     field(:token, :string)
     field(:grant_type, :string)
     belongs_to(:app_client_id, AppClient)
-
-    timestamps()
   end
 
   @doc false

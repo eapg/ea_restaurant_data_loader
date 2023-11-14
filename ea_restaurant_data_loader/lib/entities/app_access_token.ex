@@ -6,8 +6,6 @@ defmodule EaRestaurantDataLoader.AppAccessToken do
   schema "app_access_tokens" do
     field(:token, :string)
     belongs_to(:refresh_token_id, AppRefreshToken)
-
-    timestamps()
   end
 
   @doc false

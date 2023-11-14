@@ -8,11 +8,11 @@ defmodule EaRestaurantDataLoader.AppClientScope do
     field(:entity_status, :string)
     field(:created_date, :naive_datetime)
     field(:updated_date, :naive_datetime)
-    belongs_to(:created_by, User)
-    belongs_to(:updated_by, User)
+    field(:created_by, :integer)
+    field(:updated_by, :integer)
+    belongs_to(:created_by_user, User, source: :created_by, define_field: false)
+    belongs_to(:updated_by_user, User, source: :updated_by, define_field: false)
     belongs_to(:app_client_id, AppClient)
-
-    timestamps()
   end
 
   @doc false
