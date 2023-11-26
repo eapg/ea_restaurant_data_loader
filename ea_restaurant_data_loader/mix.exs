@@ -44,7 +44,7 @@ defmodule EaRestaurantDataLoader.MixProject do
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
       {:joken, "~> 2.6.0"},
-      {:mock, "~> 0.3.0", only: :test}
+      {:bcrypt_elixir, "~> 3.1"}
     ]
   end
 

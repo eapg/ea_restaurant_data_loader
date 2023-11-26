@@ -5,7 +5,8 @@ defmodule EaRestaurantDataLoader.AppAccessToken do
 
   schema "app_access_tokens" do
     field(:token, :string)
-    belongs_to(:refresh_token_id, AppRefreshToken)
+    field(:refresh_token_id, :integer)
+    belongs_to(:app_refresh_token, AppRefreshToken, source: :refresh_token_id, define_field: false)
   end
 
   @doc false

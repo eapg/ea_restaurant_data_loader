@@ -5,6 +5,7 @@ defmodule EaRestaurantDataLoader.AppClientScope do
 
   schema "app_clients_scopes" do
     field(:scope, :string)
+    field(:app_client_id, :integer)
     field(:entity_status, :string)
     field(:created_date, :naive_datetime)
     field(:updated_date, :naive_datetime)
@@ -12,7 +13,7 @@ defmodule EaRestaurantDataLoader.AppClientScope do
     field(:updated_by, :integer)
     belongs_to(:created_by_user, User, source: :created_by, define_field: false)
     belongs_to(:updated_by_user, User, source: :updated_by, define_field: false)
-    belongs_to(:app_client_id, AppClient)
+    belongs_to(:app_client, AppClient, source: :app_client_id, define_field: false)
   end
 
   @doc false

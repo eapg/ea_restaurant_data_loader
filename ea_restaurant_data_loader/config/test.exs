@@ -20,3 +20,6 @@ config :ea_restaurant_data_loader, EaRestaurantDataLoaderWeb.Endpoint,
 
 # Print only warnings and errors during test
 config :logger, level: :warn
+
+# Note: Do not use this value in production
+config :bcrypt_elixir, log_rounds: 4

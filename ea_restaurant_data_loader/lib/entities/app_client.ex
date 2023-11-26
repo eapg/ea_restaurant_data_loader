@@ -2,6 +2,7 @@ defmodule EaRestaurantDataLoader.AppClient do
   use Ecto.Schema
   import Ecto.Changeset
   alias EaRestaurantDataLoader.User
+  alias EaRestaurantDataLoader.AppClientScope
 
   schema "app_clients" do
     field(:client_name, :string)
@@ -16,6 +17,7 @@ defmodule EaRestaurantDataLoader.AppClient do
     field(:updated_by, :integer)
     belongs_to(:created_by_user, User, source: :created_by, define_field: false)
     belongs_to(:updated_by_user, User, source: :updated_by, define_field: false)
+    has_many :scopes, AppClientScope
   end
 
   @doc false
