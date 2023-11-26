@@ -25,7 +25,7 @@ defmodule EaRestaurantDataLoader.MixProject do
   end
 
   # Specifies which paths to compile per environment.
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(:test), do: ["lib", "test/support", "test/fixtures"]
   defp elixirc_paths(_), do: ["lib"]
 
   # Specifies your project dependencies.
@@ -36,14 +36,15 @@ defmodule EaRestaurantDataLoader.MixProject do
       {:phoenix, "~> 1.5.3"},
       {:phoenix_ecto, "~> 4.1"},
       {:ecto_sql, "~> 3.4"},
-      {:postgrex, ">= 0.0.0"},
+      {:postgrex, ">= 0.17.3"},
       {:phoenix_live_dashboard, "~> 0.2.0"},
       {:telemetry_metrics, "~> 0.4"},
       {:telemetry_poller, "~> 0.4"},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
-      {:joken, "~> 2.6.0"}
+      {:joken, "~> 2.6.0"},
+      {:mock, "~> 0.3.0", only: :test}
     ]
   end
 

@@ -5,9 +5,6 @@ defmodule EaRestaurantDataLoader.Repo.Migrations.CreateAppAccessTokens do
     create table(:app_access_tokens) do
       add :refresh_token_id, references(:app_refresh_tokens)
       add :token, :string
-
-      timestamps()
     end
-
   end
 end
