@@ -9,7 +9,7 @@ defmodule EaRestaurantDataLoader.AppClientFixture do
       |> AppClient.changeset(%{
         client_name: client_name,
         client_id: client_id,
-        client_secret: "secret",
+        client_secret: "$2a$12$rb1quyHV8c.R4iEE5PlRme/lFZrn3uO2ri1stG7EM1EPa8ZRk2ptC",
         access_token_expiration_time: 10,
         refresh_token_expiration_time: 100,
         entity_status: "ACTIVE",
