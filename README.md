@@ -28,8 +28,33 @@ Now we are ready to create our Phoenix application running the following command
 
 `mix phx.new ea_restaurant_data_loader`
 
-In order to have the phoenix server ready it’s good to fetch and install dependencies.
+In order to have the phoenix server ready it’s good to fetch and install dependencies running the command:
 
-After dependencies are installed we are ready to run the Phoenix server running the command:
+* `mix deps.get`
 
-`mix phx.server`
+Note: It is important before to install the dependencies to install a C compiler to be able to compile `bcrypt_elixir` dependency, follow the following
+steps:
+* Install a recent version of [Visual C++ Build Tools](https://visualstudio.microsoft.com/downloads/) (On the download page, click on tools for Visual Studio and then you will see the link for the build tools for visual studio 2022)
+
+* Run the visual studio tools and install de desktop C++ developer package
+
+* After installing the visual C++ build tools open the `run` command and type the follogin command(make sure that the path and version number are correct):
+    `cmd /K "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\VsDevCmd.bat" amd64`
+
+
+This should open up a command prompt with the necesary enviroment variables set, and from which you will be able to run the commands `mix compile`, `mix deps.compile` and `mix test`. note:cd project path to run the commands above.
+
+If you need additional details you can look at : [bcrypt_elixir,Requirements](https://github.com/riverrun/comeonin/wiki/Requirements)
+
+After dependencies are installed we are ready to compile the project, run tests or run the Phoenix server, running the commands:
+
+* `mix compile` for compile the project
+* `mix test` for run all test
+* `mix phx.server` for run phoenix server
+
+
+### Migrations
+
+In order to run migrations in the specific enviroment it is neccessary to set the enviroment in the `mix.exs` file changing the line `start_permanent: Mix.env() == :prod` where you can choose the enviroment changing `:prod` by `:dev` or `:test` depending in which enviroment you want to run migrations.
+
+After choose the desire enviroment you can run the command : `mix ecto.migrate`
