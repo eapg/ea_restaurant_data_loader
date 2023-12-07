@@ -8,6 +8,9 @@ defmodule EaRestaurantDataLoader.Oauth2Service do
   alias EaRestaurantDataLoader.Status
   alias EaRestaurantDataLoader.Oauth2
   alias EaRestaurantDataLoader.InvalidCredentialsError
+  alias EaRestaurantDataLoader.Lib.Protocols.PasswordEncoder.Base64
+  alias EaRestaurantDataLoader.Lib.Protocols.PasswordEncoder.PasswordEncoder
+  alias EaRestaurantDataLoader.Lib.Utils.ApplicationUtil
   import Ecto.Query
 
   def login_client(client_id, client_secret) do
@@ -50,7 +53,9 @@ defmodule EaRestaurantDataLoader.Oauth2Service do
   end
 
   defp validate_client_credentials(client, client_secret, entity_status) do
-    case Bcrypt.verify_pass(client_secret, client.client_secret) do
+    password = ApplicationUtil.build_password_type_from_env(client_secret, client.client_secret)
+
+    case PasswordEncoder.validate_password(password) do
       true ->
         {:ok}
 
