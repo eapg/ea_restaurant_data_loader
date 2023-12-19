@@ -30,3 +30,6 @@ config :phoenix, :json_library, Jason
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"
 import_config "#{Mix.env()}.secret.exs"
+
+config :ea_restaurant_data_loader, password_encoding_type: :base64
+
