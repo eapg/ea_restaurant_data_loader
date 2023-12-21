@@ -52,6 +52,49 @@ defmodule EaRestaurantDataLoader.Oauth2Service do
     }
   end
 
+  def refresh_token(refresh_token, access_token, client_id, client_secret) do
+    secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
+    
+    client = get_client_by_client_id_and_entity_status(client_id, Status.active())
+
+    [client_scope | _] = client.scopes
+    validate_client_credentials(client, client_secret, Status.active())
+
+    case Oauth2Util.validate_token(access_token, secret_key) do
+      {:ok, _} ->
+        %{
+          :client_name => client.client_name,
+          :access_token => access_token,
+          :refresh_token => refresh_token,
+          :scopes => client_scope.scope,
+          :expires_in => Oauth2Util.get_expiration_time_in_seconds(refresh_token, secret_key)
+        }
+
+      {:error, _} ->
+        {:ok,_} = Oauth2Util.validate_token(refresh_token, secret_key)
+
+        app_refresh_token = get_app_refresh_token_by_token_and_client_id(refresh_token, client.id)
+
+        new_access_token =
+          Oauth2Util.build_client_credentials_token(
+            client.client_name,
+            client_scope.scope,
+            client.access_token_expiration_time,
+            secret_key
+          )
+
+        delete_access_token_by_app_refresh_token_id(app_refresh_token.id)
+
+        %{
+          :client_name => client.client_name,
+          :access_token => new_access_token,
+          :refresh_token => refresh_token,
+          :scopes => client_scope.scope,
+          :expires_in => client.access_token_expiration_time
+        }
+    end
+  end
+
   defp validate_client_credentials(client, client_secret, entity_status) do
     password = ApplicationUtil.build_password_type_from_env(client_secret, client.client_secret)
 
@@ -68,6 +111,14 @@ defmodule EaRestaurantDataLoader.Oauth2Service do
     do:
       Repo.get_by(AppClient, client_id: client_id, entity_status: entity_status)
       |> Repo.preload([:scopes])
+
+  defp get_app_refresh_token_by_token_and_client_id(refresh_token, app_client_id),
+    do: Repo.get_by(AppRefreshToken, token: refresh_token, app_client_id: app_client_id)
+
+  defp delete_access_token_by_app_refresh_token_id(app_refresh_token_id),
+    do:
+      Repo.get_by(AppAccessToken, refresh_token_id: app_refresh_token_id)
+      |> Repo.delete()
 
   defp create_access_token(access_token, persisted_refresh_token),
     do:
