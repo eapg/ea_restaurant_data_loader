@@ -1,5 +1,5 @@
-defmodule EaRestaurantDataLoader.UserFixture do
-  alias EaRestaurantDataLoader.User
+defmodule EaRestaurantDataLoader.Test.Fixtures.UserFixture do
+  alias EaRestaurantDataLoader.Lib.Entities.User
   alias EaRestaurantDataLoader.Repo
 
   def build_user(name, username),

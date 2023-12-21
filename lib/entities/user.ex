@@ -1,4 +1,4 @@
-defmodule EaRestaurantDataLoader.User do
+defmodule EaRestaurantDataLoader.Lib.Entities.User do
   use Ecto.Schema
   import Ecto.Changeset
 

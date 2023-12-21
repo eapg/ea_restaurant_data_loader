@@ -1,13 +1,13 @@
-defmodule EaRestaurantDataLoader.Oauth2ServiceTest do
+defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
   use EaRestaurantDataLoader.RepoCase
-  alias EaRestaurantDataLoader.Oauth2Service
-  alias EaRestaurantDataLoader.AppClientFixture
-  alias EaRestaurantDataLoader.UserFixture
-  alias EaRestaurantDataLoader.AppClientScopeFixture
-  alias EaRestaurantDataLoader.Oauth2Util
+  alias EaRestaurantDataLoader.Lib.Services.Oauth2Service
+  alias EaRestaurantDataLoader.Test.Fixtures.AppClientFixture
+  alias EaRestaurantDataLoader.Test.Fixtures.UserFixture
+  alias EaRestaurantDataLoader.Test.Fixtures.AppClientScopeFixture
+  alias EaRestaurantDataLoader.Lib.Utils.Oauth2Util
   alias EaRestaurantDataLoader.Test.Fixtures.AppAccessTokenFixture
   alias EaRestaurantDataLoader.Test.Fixtures.AppRefreshTokenFixture
-  alias EaRestaurantDataLoader.Oauth2
+  alias EaRestaurantDataLoader.Lib.Constants.Oauth2
 
   describe "oauth2 service test" do
     test " client credential login" do
@@ -74,7 +74,7 @@ defmodule EaRestaurantDataLoader.Oauth2ServiceTest do
           client.id
         )
 
-      {:ok, persisted_access_token} =
+      {:ok, _} =
         AppAccessTokenFixture.build_and_insert_app_access_token(
           expired_access_token,
           persisted_refresh_token.id
@@ -128,7 +128,7 @@ defmodule EaRestaurantDataLoader.Oauth2ServiceTest do
           client.id
         )
 
-      {:ok, persisted_access_token} =
+      {:ok, _} =
         AppAccessTokenFixture.build_and_insert_app_access_token(
           access_token,
           persisted_refresh_token.id
@@ -182,7 +182,7 @@ defmodule EaRestaurantDataLoader.Oauth2ServiceTest do
           client.id
         )
 
-      {:ok, persisted_access_token} =
+      {:ok, _} =
         AppAccessTokenFixture.build_and_insert_app_access_token(
           expired_access_token,
           persisted_refresh_token.id

@@ -1,4 +1,4 @@
-defmodule EaRestaurantDataLoader.Status do
+defmodule EaRestaurantDataLoader.Lib.Constants.Status do
   @values %{active: "ACTIVE", deleted: "DELETED"}
 
   def get_values, do: @values

@@ -1,5 +1,5 @@
-defmodule EaRestaurantDataLoader.AppClientScopeFixture do
-  alias EaRestaurantDataLoader.AppClientScope
+defmodule EaRestaurantDataLoader.Test.Fixtures.AppClientScopeFixture do
+  alias EaRestaurantDataLoader.Lib.Entities.AppClientScope
   alias EaRestaurantDataLoader.Repo
 
   def build_app_client_scope(scopes, app_client_id, user),

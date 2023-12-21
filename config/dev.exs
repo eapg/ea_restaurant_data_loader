@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 # Configure your database
 config :ea_restaurant_data_loader, EaRestaurantDataLoader.Repo,

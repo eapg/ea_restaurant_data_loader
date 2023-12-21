@@ -1,8 +1,8 @@
-defmodule EaRestaurantDataLoader.AppClient do
+defmodule EaRestaurantDataLoader.Lib.Entities.AppClient do
   use Ecto.Schema
   import Ecto.Changeset
-  alias EaRestaurantDataLoader.User
-  alias EaRestaurantDataLoader.AppClientScope
+  alias EaRestaurantDataLoader.Lib.Entities.User
+  alias EaRestaurantDataLoader.Lib.Entities.AppClientScope
 
   schema "app_clients" do
     field(:client_name, :string)

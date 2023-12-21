@@ -1,5 +1,5 @@
-defmodule EaRestaurantDataLoader.Oauth2Util do
-  alias EaRestaurantDataLoader.Token
+defmodule EaRestaurantDataLoader.Lib.Utils.Oauth2Util do
+  alias EaRestaurantDataLoader.Lib.Auth.Token
 
   defp signer(secret_key) do
     Joken.Signer.create("HS256", secret_key)
@@ -23,7 +23,7 @@ defmodule EaRestaurantDataLoader.Oauth2Util do
     {_, claims} = get_token_decoded(token, secret_key)
 
     case Token.validate(claims) do
-      {:ok, claims} ->
+      {:ok, _} ->
         {:ok, nil}
 
       {:error, error_message_list} ->

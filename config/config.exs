@@ -5,7 +5,7 @@
 # is restricted to this project.
 
 # General application configuration
-use Mix.Config
+import Config
 
 config :ea_restaurant_data_loader,
   ecto_repos: [EaRestaurantDataLoader.Repo]

@@ -12,31 +12,7 @@ In order to run the project, we will need few dependencies to be installed:
 
 - [Erlang/OTP](https://www.erlang.org)
 - [Elixir](https://elixir-lang.org)
-- [Postgres SQL] (https://www.postgresql.org)
-
-### Build an application with Phoenix
-
-In Order to build a Phoenix application, we will need a few dependencies installed in our Operating System:
-
-- The [Erlang/OTP](https://www.erlang.org/downloads) and the [Elixir](https://elixir-lang.org/install.html#windows) programming language
-- a database - Phoenix recommends PostgreSQL , but you can pick others or not use a database at all
-- and other optional packages
-
-In order to get a Phoenix app running and to install any extra dependencies we might need to install Hex.
-
-Here’s the command to install Hex:
-
-`mix local.hex`
-
-Once we have Elixir and Erlang, we are ready to install Phoenix application generator:
-
-`mix archive.install hex phx_new`
-
-After that the `phx.new` generator is now available to generate new applications. In order to config a database Phoenix applications use another elixir package, called Ecto. Ecto is a toolkit for data mapping and language integrated query for Elixir.
-
-Now we are ready to create our Phoenix application running the following command:
-
-`mix phx.new ea_restaurant_data_loader`
+- [Postgres SQL](https://www.postgresql.org)
 
 ### Local Setup
 1. Clone the project:

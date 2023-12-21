@@ -1,7 +1,7 @@
-defmodule EaRestaurantDataLoader.AppClientFixture do
-  alias EaRestaurantDataLoader.AppClient
+defmodule EaRestaurantDataLoader.Test.Fixtures.AppClientFixture do
+  alias EaRestaurantDataLoader.Lib.Entities.AppClient
   alias EaRestaurantDataLoader.Repo
-  alias EaRestaurantDataLoader.User
+  alias EaRestaurantDataLoader.Lib.Entities.User
 
   def build_app_client(client_name, client_id, user = %User{}),
     do:
