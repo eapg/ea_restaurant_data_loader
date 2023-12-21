@@ -1,3 +1,3 @@
 defmodule EaRestaurantDataLoader.Lib.Protocols.PasswordEncoder.Base64 do
-  use EaRestaurantDataLoader.BaseFields
+  use EaRestaurantDataLoader.Lib.Protocols.PasswordEncoder.BaseFields
 end

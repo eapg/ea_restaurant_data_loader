@@ -1,7 +1,7 @@
-defmodule EaRestaurantDataLoader.Product do
+defmodule EaRestaurantDataLoader.Lib.Entities.Product do
   use Ecto.Schema
   import Ecto.Changeset
-  alias EaRestaurantDataLoader.User
+  alias EaRestaurantDataLoader.Lib.Entities.User
 
   schema "products" do
     field :name, :string

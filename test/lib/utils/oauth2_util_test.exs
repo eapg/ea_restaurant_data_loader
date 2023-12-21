@@ -1,7 +1,7 @@
-defmodule EaRestaurantDataLoader.Oauth2UtilTest do
+defmodule EaRestaurantDataLoader.Test.Lib.Utils.Oauth2UtilTest do
   use ExUnit.Case
-  doctest EaRestaurantDataLoader.Oauth2Util
-  alias EaRestaurantDataLoader.Oauth2Util
+  doctest EaRestaurantDataLoader.Lib.Utils.Oauth2Util
+  alias EaRestaurantDataLoader.Lib.Utils.Oauth2Util
 
   describe "Oauth2Util Test" do
     test "build client credential token successfully" do

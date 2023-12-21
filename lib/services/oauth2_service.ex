@@ -1,17 +1,14 @@
-defmodule EaRestaurantDataLoader.Oauth2Service do
+defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
   alias EaRestaurantDataLoader.Repo
-  alias EaRestaurantDataLoader.AppClient
-  alias EaRestaurantDataLoader.AppClientScope
-  alias EaRestaurantDataLoader.AppAccessToken
-  alias EaRestaurantDataLoader.AppRefreshToken
-  alias EaRestaurantDataLoader.Oauth2Util
-  alias EaRestaurantDataLoader.Status
-  alias EaRestaurantDataLoader.Oauth2
-  alias EaRestaurantDataLoader.InvalidCredentialsError
-  alias EaRestaurantDataLoader.Lib.Protocols.PasswordEncoder.Base64
+  alias EaRestaurantDataLoader.Lib.Entities.AppClient
+  alias EaRestaurantDataLoader.Lib.Entities.AppAccessToken
+  alias EaRestaurantDataLoader.Lib.Entities.AppRefreshToken
+  alias EaRestaurantDataLoader.Lib.Utils.Oauth2Util
+  alias EaRestaurantDataLoader.Lib.Constants.Status
+  alias EaRestaurantDataLoader.Lib.Constants.Oauth2
+  alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidCredentialsError
   alias EaRestaurantDataLoader.Lib.Protocols.PasswordEncoder.PasswordEncoder
   alias EaRestaurantDataLoader.Lib.Utils.ApplicationUtil
-  import Ecto.Query
 
   def login_client(client_id, client_secret) do
     secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
@@ -20,7 +17,7 @@ defmodule EaRestaurantDataLoader.Oauth2Service do
 
     [client_scope | _] = client.scopes
 
-    validate_client_credentials(client, client_secret, Status.active())
+    validate_client_credentials(client, client_secret)
 
     access_token =
       Oauth2Util.build_client_credentials_token(
@@ -58,7 +55,7 @@ defmodule EaRestaurantDataLoader.Oauth2Service do
     client = get_client_by_client_id_and_entity_status(client_id, Status.active())
 
     [client_scope | _] = client.scopes
-    validate_client_credentials(client, client_secret, Status.active())
+    validate_client_credentials(client, client_secret)
 
     case Oauth2Util.validate_token(access_token, secret_key) do
       {:ok, _} ->
@@ -95,7 +92,7 @@ defmodule EaRestaurantDataLoader.Oauth2Service do
     end
   end
 
-  defp validate_client_credentials(client, client_secret, entity_status) do
+  defp validate_client_credentials(client, client_secret) do
     password = ApplicationUtil.build_password_type_from_env(client_secret, client.client_secret)
 
     case PasswordEncoder.validate_password(password) do

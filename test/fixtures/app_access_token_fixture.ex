@@ -1,5 +1,5 @@
 defmodule EaRestaurantDataLoader.Test.Fixtures.AppAccessTokenFixture do
-  alias EaRestaurantDataLoader.AppAccessToken
+  alias EaRestaurantDataLoader.Lib.Entities.AppAccessToken
   alias EaRestaurantDataLoader.Repo
 
   def build_app_access_token(access_token, app_refresh_token_id),

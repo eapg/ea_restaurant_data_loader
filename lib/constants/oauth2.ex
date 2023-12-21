@@ -1,4 +1,4 @@
-defmodule EaRestaurantDataLoader.Oauth2 do
+defmodule EaRestaurantDataLoader.Lib.Constants.Oauth2 do
   @values ["CLIENT_CREDENTIALS"]
 
   def get_values, do: @values

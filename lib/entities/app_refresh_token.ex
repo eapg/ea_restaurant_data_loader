@@ -1,7 +1,7 @@
-defmodule EaRestaurantDataLoader.AppRefreshToken do
+defmodule EaRestaurantDataLoader.Lib.Entities.AppRefreshToken do
   use Ecto.Schema
   import Ecto.Changeset
-  alias EaRestaurantDataLoader.AppClient
+  alias EaRestaurantDataLoader.Lib.Entities.AppClient
 
   schema "app_refresh_tokens" do
     field(:token, :string)

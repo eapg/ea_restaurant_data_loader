@@ -1,9 +1,9 @@
-defmodule EaRestaurantDataLoader.AppClientServiceTest do
+defmodule EaRestaurantDataLoader.Test.Lib.Services.AppClientServiceTest do
   use EaRestaurantDataLoader.RepoCase
 
-  alias EaRestaurantDataLoader.AppClientService
-  alias EaRestaurantDataLoader.AppClientFixture
-  alias EaRestaurantDataLoader.UserFixture
+  alias EaRestaurantDataLoader.Lib.Services.AppClientService
+  alias EaRestaurantDataLoader.Test.Fixtures.AppClientFixture
+  alias EaRestaurantDataLoader.Test.Fixtures.UserFixture
 
   describe "app client service test" do
     test "get app client by client id should return expected app client" do
