@@ -8,7 +8,7 @@ defmodule EaRestaurantDataLoader.MixProject do
       elixir: "~> 1.7",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix] ++ Mix.compilers(),
-      start_permanent: Mix.env() == :prod,
+      start_permanent: Mix.env() == :dev,
       aliases: aliases(),
       deps: deps()
     ]
@@ -43,7 +43,8 @@ defmodule EaRestaurantDataLoader.MixProject do
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
-      {:joken, "~> 2.6.0"}
+      {:joken, "~> 2.6.0"},
+      {:poison, "~> 5.0"}
     ]
   end
 

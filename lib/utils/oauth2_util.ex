@@ -2,6 +2,7 @@ defmodule EaRestaurantDataLoader.Lib.Utils.Oauth2Util do
   alias EaRestaurantDataLoader.Lib.Auth.Token
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidTokenError
 
+
   defp signer(secret_key) do
     Joken.Signer.create("HS256", secret_key)
   end
@@ -45,5 +46,15 @@ defmodule EaRestaurantDataLoader.Lib.Utils.Oauth2Util do
     %{"exp" => expiration_time} = token_decoded
     unix_datetime = DateTime.utc_now() |> DateTime.to_unix()
     expiration_time - unix_datetime
+  end
+
+  def decrypt_client_credentials(encrypted_client_credentials) do
+    Base.decode64(encrypted_client_credentials, case: :mixed)
+  end
+
+  def extract_client_credentials_from_basic_auth(basic_auth) do
+    [_, encrypted_client_credentials] = String.split(basic_auth, " ")
+    {:ok, decoded_client_credentials} = decrypt_client_credentials(encrypted_client_credentials)
+    String.split(decoded_client_credentials, ":")
   end
 end
