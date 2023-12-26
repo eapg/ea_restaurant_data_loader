@@ -8,6 +8,7 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
   alias EaRestaurantDataLoader.Test.Fixtures.AppAccessTokenFixture
   alias EaRestaurantDataLoader.Test.Fixtures.AppRefreshTokenFixture
   alias EaRestaurantDataLoader.Lib.Constants.Oauth2
+  alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidCredentialsError
 
   describe "oauth2 service test" do
     test " client credential login" do
@@ -201,5 +202,26 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
         end
       )
     end
+
+    test "oauth2-login wrong credentials" do
+
+      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
+
+      {:ok, _app_client} =
+        AppClientFixture.build_and_insert_app_client(
+          "postman",
+          "postman001",
+          user
+        )
+    
+      assert_raise(
+          InvalidCredentialsError,
+          ~r/Invalid Credentials/,
+          fn ->
+            Oauth2Service.login_client("wrong-client-id", "wrong-client-secret")
+          end
+        )
+      end
+
   end
 end
