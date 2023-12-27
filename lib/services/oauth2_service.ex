@@ -15,9 +15,9 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
 
     client = get_client_by_client_id_and_entity_status(client_id, Status.active())
 
-    [client_scope | _] = client.scopes
-
     validate_client_credentials(client, client_secret)
+
+    [client_scope | _] = client.scopes
 
     access_token =
       Oauth2Util.build_client_credentials_token(
@@ -51,7 +51,7 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
 
   def refresh_token(refresh_token, access_token, client_id, client_secret) do
     secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
-    
+
     client = get_client_by_client_id_and_entity_status(client_id, Status.active())
 
     [client_scope | _] = client.scopes
@@ -68,7 +68,7 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
         }
 
       {:error, _} ->
-        {:ok,_} = Oauth2Util.validate_token(refresh_token, secret_key)
+        {:ok, _} = Oauth2Util.validate_token(refresh_token, secret_key)
 
         app_refresh_token = get_app_refresh_token_by_token_and_client_id(refresh_token, client.id)
 
@@ -93,9 +93,19 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
   end
 
   defp validate_client_credentials(client, client_secret) do
-    password = ApplicationUtil.build_password_type_from_env(client_secret, client.client_secret)
+    validated_client =
+      case client do
+        %AppClient{} ->
+          client
 
-    case PasswordEncoder.validate_password(password) do
+        _ ->
+          raise InvalidCredentialsError
+      end
+
+    password_struct =
+      ApplicationUtil.build_password_type_from_env(client_secret, validated_client.client_secret)
+
+    case PasswordEncoder.validate_password(password_struct) do
       true ->
         {:ok}
 
