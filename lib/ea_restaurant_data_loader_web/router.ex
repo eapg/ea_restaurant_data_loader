@@ -11,6 +11,7 @@ defmodule EaRestaurantDataLoaderWeb.Router do
     pipe_through([:api])
 
     post("/login", Oauth2Controller, :login)
+    post("/refresh_token", Oauth2Controller, :refresh_token)
   end
 
   @impl Plug.ErrorHandler

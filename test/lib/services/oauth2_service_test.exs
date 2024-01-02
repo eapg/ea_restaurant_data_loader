@@ -9,6 +9,7 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
   alias EaRestaurantDataLoader.Test.Fixtures.AppRefreshTokenFixture
   alias EaRestaurantDataLoader.Lib.Constants.Oauth2
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidCredentialsError
+  alias EaRestaurantDataLoader.Lib.ErrorHandlers.TokenExpiredError
 
   describe "oauth2 service test" do
     test " client credential login" do
@@ -190,8 +191,8 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
         )
 
       assert_raise(
-        MatchError,
-        ~r/no match of right hand side value: {:error, "Invalid token"}/,
+        TokenExpiredError,
+        ~r/Token expired/,
         fn ->
           Oauth2Service.refresh_token(
             expired_refresh_token,
@@ -213,7 +214,7 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
           "postman001",
           user
         )
-    
+
       assert_raise(
           InvalidCredentialsError,
           ~r/Invalid Credentials/,

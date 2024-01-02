@@ -3,10 +3,14 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
   alias EaRestaurantDataLoader.Test.Fixtures.AppClientFixture
   alias EaRestaurantDataLoader.Test.Fixtures.UserFixture
   alias EaRestaurantDataLoader.Test.Fixtures.AppClientScopeFixture
+  alias EaRestaurantDataLoader.Test.Fixtures.AppAccessTokenFixture
+  alias EaRestaurantDataLoader.Test.Fixtures.AppRefreshTokenFixture
   alias EaRestaurantDataLoader.Lib.Utils.ApplicationUtil
   alias EaRestaurantDataLoader.Lib.Utils.Oauth2Util
+  alias EaRestaurantDataLoader.Lib.Constants.Oauth2
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidCredentialsError
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.BadRequest
+  alias EaRestaurantDataLoader.Lib.ErrorHandlers.TokenExpiredError
 
   describe "oauth2 controller test" do
     test "Should login using client credentials", %{conn: conn} do
@@ -48,6 +52,179 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
       conn = put_req_header(conn, "authorization", "Basic bad-base64")
 
       assert_raise(BadRequest, ~r/bad request/, fn -> post(conn, "/login") end)
+    end
+
+    test "Should return same access token when refresh an unexpired access token", %{conn: conn} do
+      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
+      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
+
+      {:ok, client} =
+        AppClientFixture.build_and_insert_app_client(
+          "postman",
+          "postman001",
+          user
+        )
+
+      {:ok, scopes} =
+        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
+
+      access_token =
+        Oauth2Util.build_client_credentials_token(
+          client.client_name,
+          scopes.scope,
+          client.access_token_expiration_time,
+          secret_key
+        )
+
+      refresh_token =
+        Oauth2Util.build_client_credentials_token(
+          client.client_name,
+          scopes.scope,
+          client.refresh_token_expiration_time,
+          secret_key
+        )
+
+      {:ok, persisted_refresh_token} =
+        AppRefreshTokenFixture.build_and_insert_app_refresh_token(
+          refresh_token,
+          Oauth2.client_credentials(),
+          client.id
+        )
+
+      {:ok, _} =
+        AppAccessTokenFixture.build_and_insert_app_access_token(
+          access_token,
+          persisted_refresh_token.id
+        )
+
+      body_params = %{
+        "access_token" => access_token,
+        "refresh_token" => refresh_token,
+        "client_id" => "postman001",
+        "client_secret" => "postmansecret01"
+      }
+
+      conn = post(conn, "/refresh_token", body_params)
+      {_, resp_body_decoded} = ApplicationUtil.decode_json(conn.resp_body)
+
+      assert conn.status == 200
+      assert resp_body_decoded["access_token"] == access_token
+    end
+
+    test "Should create new access token when refresh expired access token", %{conn: conn} do
+      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
+      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
+
+      {:ok, client} =
+        AppClientFixture.build_and_insert_app_client(
+          "postman",
+          "postman001",
+          user
+        )
+
+      {:ok, scopes} =
+        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
+
+      expired_access_token =
+        Oauth2Util.build_client_credentials_token(
+          client.client_name,
+          scopes.scope,
+          0,
+          secret_key
+        )
+
+      refresh_token =
+        Oauth2Util.build_client_credentials_token(
+          client.client_name,
+          scopes.scope,
+          client.refresh_token_expiration_time,
+          secret_key
+        )
+
+      {:ok, persisted_refresh_token} =
+        AppRefreshTokenFixture.build_and_insert_app_refresh_token(
+          refresh_token,
+          Oauth2.client_credentials(),
+          client.id
+        )
+
+      {:ok, _} =
+        AppAccessTokenFixture.build_and_insert_app_access_token(
+          expired_access_token,
+          persisted_refresh_token.id
+        )
+
+      body_params = %{
+        "access_token" => expired_access_token,
+        "refresh_token" => refresh_token,
+        "client_id" => "postman001",
+        "client_secret" => "postmansecret01"
+      }
+
+      conn = post(conn, "/refresh_token", body_params)
+      {_, resp_body_decoded} = ApplicationUtil.decode_json(conn.resp_body)
+
+      assert conn.status == 200
+      assert resp_body_decoded["access_token"] != expired_access_token
+    end
+
+    test "Should raise TokenExpiredError when refresh access token with expired refresh token", %{conn: conn} do
+      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
+      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
+
+      {:ok, client} =
+        AppClientFixture.build_and_insert_app_client(
+          "postman",
+          "postman001",
+          user
+        )
+
+      {:ok, scopes} =
+        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
+
+      expired_access_token =
+        Oauth2Util.build_client_credentials_token(
+          client.client_name,
+          scopes.scope,
+          0,
+          secret_key
+        )
+
+      expired_refresh_token =
+        Oauth2Util.build_client_credentials_token(
+          client.client_name,
+          scopes.scope,
+          0,
+          secret_key
+        )
+
+      {:ok, persisted_refresh_token} =
+        AppRefreshTokenFixture.build_and_insert_app_refresh_token(
+          expired_refresh_token,
+          Oauth2.client_credentials(),
+          client.id
+        )
+
+      {:ok, _} =
+        AppAccessTokenFixture.build_and_insert_app_access_token(
+          expired_access_token,
+          persisted_refresh_token.id
+        )
+
+      body_params = %{
+        "access_token" => expired_access_token,
+        "refresh_token" => expired_refresh_token,
+        "client_id" => "postman001",
+        "client_secret" => "postmansecret01"
+      }
+
+      assert_raise(
+        TokenExpiredError,
+        ~r/Token expired/,
+        fn ->
+          post(conn, "/refresh_token", body_params)
+        end
+      )
     end
   end
 end
