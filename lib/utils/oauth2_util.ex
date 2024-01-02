@@ -1,5 +1,6 @@
 defmodule EaRestaurantDataLoader.Lib.Utils.Oauth2Util do
   alias EaRestaurantDataLoader.Lib.Auth.Token
+  alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidTokenError
 
   defp signer(secret_key) do
     Joken.Signer.create("HS256", secret_key)
@@ -16,7 +17,13 @@ defmodule EaRestaurantDataLoader.Lib.Utils.Oauth2Util do
   end
 
   def get_token_decoded(token, secret_key) do
-    Token.verify(token, signer(secret_key))
+      case Token.verify(token, signer(secret_key)) do
+        {:ok, claims} ->
+          {:ok,claims}
+
+        _ ->
+          raise InvalidTokenError
+      end
   end
 
   def validate_token(token, secret_key) do
