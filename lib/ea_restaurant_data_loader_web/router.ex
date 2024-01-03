@@ -2,15 +2,26 @@ defmodule EaRestaurantDataLoaderWeb.Router do
   use EaRestaurantDataLoaderWeb, :router
   use Plug.ErrorHandler
   alias EaRestaurantDataLoaderWeb.ErrorHandlers.CustomErrorHandler
-
+  alias EaRestaurantDataLoaderWeb.Plugs.SecurityRoutePlug
   pipeline :api do
     plug(:accepts, ["json"])
+  end
+
+  pipeline :protected_api do
+    plug(:accepts, ["json"])
+    plug(SecurityRoutePlug)
   end
 
   scope "/", EaRestaurantDataLoaderWeb.Controllers do
     pipe_through([:api])
 
     post("/login", Oauth2Controller, :login)
+
+  end
+
+  scope "/", EaRestaurantDataLoaderWeb.Controllers do
+    pipe_through([:protected_api])
+
     post("/refresh_token", Oauth2Controller, :refresh_token)
   end
 
