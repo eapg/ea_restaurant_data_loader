@@ -9,6 +9,7 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidCredentialsError
   alias EaRestaurantDataLoader.Lib.Protocols.PasswordEncoder.PasswordEncoder
   alias EaRestaurantDataLoader.Lib.Utils.ApplicationUtil
+  alias EaRestaurantDataLoader.Lib.ErrorHandlers.TokenExpiredError
 
   def login_client(client_id, client_secret) do
     secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
@@ -68,27 +69,32 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
         }
 
       {:error, _} ->
-        {:ok, _} = Oauth2Util.validate_token(refresh_token, secret_key)
+        case Oauth2Util.validate_token(refresh_token, secret_key) do
+          {:ok, _} ->
+            app_refresh_token =
+              get_app_refresh_token_by_token_and_client_id(refresh_token, client.id)
 
-        app_refresh_token = get_app_refresh_token_by_token_and_client_id(refresh_token, client.id)
+            new_access_token =
+              Oauth2Util.build_client_credentials_token(
+                client.client_name,
+                client_scope.scope,
+                client.access_token_expiration_time,
+                secret_key
+              )
 
-        new_access_token =
-          Oauth2Util.build_client_credentials_token(
-            client.client_name,
-            client_scope.scope,
-            client.access_token_expiration_time,
-            secret_key
-          )
+            delete_access_token_by_app_refresh_token_id(app_refresh_token.id)
 
-        delete_access_token_by_app_refresh_token_id(app_refresh_token.id)
+            %{
+              :client_name => client.client_name,
+              :access_token => new_access_token,
+              :refresh_token => refresh_token,
+              :scopes => client_scope.scope,
+              :expires_in => client.access_token_expiration_time
+            }
 
-        %{
-          :client_name => client.client_name,
-          :access_token => new_access_token,
-          :refresh_token => refresh_token,
-          :scopes => client_scope.scope,
-          :expires_in => client.access_token_expiration_time
-        }
+          {:error, _} ->
+            raise TokenExpiredError
+        end
     end
   end
 
