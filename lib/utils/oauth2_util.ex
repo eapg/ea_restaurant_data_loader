@@ -1,7 +1,9 @@
 defmodule EaRestaurantDataLoader.Lib.Utils.Oauth2Util do
   alias EaRestaurantDataLoader.Lib.Auth.Token
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidTokenError
+  alias EaRestaurantDataLoader.Lib.ErrorHandlers.UnauthorizedRouteError
 
+  @routes_scopes %{"/refresh_token" => "READ/WRITE"}
 
   defp signer(secret_key) do
     Joken.Signer.create("HS256", secret_key)
@@ -18,13 +20,13 @@ defmodule EaRestaurantDataLoader.Lib.Utils.Oauth2Util do
   end
 
   def get_token_decoded(token, secret_key) do
-      case Token.verify(token, signer(secret_key)) do
-        {:ok, claims} ->
-          {:ok,claims}
+    case Token.verify(token, signer(secret_key)) do
+      {:ok, claims} ->
+        {:ok, claims}
 
-        _ ->
-          raise InvalidTokenError
-      end
+      _ ->
+        raise InvalidTokenError
+    end
   end
 
   def validate_token(token, secret_key) do
@@ -57,4 +59,28 @@ defmodule EaRestaurantDataLoader.Lib.Utils.Oauth2Util do
     {:ok, decoded_client_credentials} = decrypt_client_credentials(encrypted_client_credentials)
     String.split(decoded_client_credentials, ":")
   end
+
+  def validate_route_protection(token, secret_key, conn) do
+    {:ok, token_decoded} =
+      case validate_token(token, secret_key) do
+        {:ok, _} ->
+          get_token_decoded(token, secret_key)
+
+        {:error, _} ->
+          raise UnauthorizedRouteError
+      end
+
+    case token_decoded["scopes"] == get_route_scopes(conn.request_path) do
+      true ->
+        conn
+
+      false ->
+        raise UnauthorizedRouteError
+    end
+  end
+
+  def get_route_scopes(route),
+    do:
+      @routes_scopes
+      |> Map.get(route)
 end

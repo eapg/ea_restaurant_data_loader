@@ -11,6 +11,7 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidCredentialsError
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.BadRequest
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.TokenExpiredError
+  alias EaRestaurantDataLoader.Lib.ErrorHandlers.UnauthorizedRouteError
 
   describe "oauth2 controller test" do
     test "Should login using client credentials", %{conn: conn} do
@@ -66,7 +67,7 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         )
 
       {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
+        AppClientScopeFixture.build_and_insert_app_client_scope("READ/WRITE", client.id, user)
 
       access_token =
         Oauth2Util.build_client_credentials_token(
@@ -104,6 +105,7 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         "client_secret" => "postmansecret01"
       }
 
+      conn = put_req_header(conn, "authorization", "Bearer " <> refresh_token)
       conn = post(conn, "/refresh_token", body_params)
       {_, resp_body_decoded} = ApplicationUtil.decode_json(conn.resp_body)
 
@@ -123,7 +125,7 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         )
 
       {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
+        AppClientScopeFixture.build_and_insert_app_client_scope("READ/WRITE", client.id, user)
 
       expired_access_token =
         Oauth2Util.build_client_credentials_token(
@@ -160,7 +162,7 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         "client_id" => "postman001",
         "client_secret" => "postmansecret01"
       }
-
+      conn = put_req_header(conn, "authorization", "Bearer " <> refresh_token)
       conn = post(conn, "/refresh_token", body_params)
       {_, resp_body_decoded} = ApplicationUtil.decode_json(conn.resp_body)
 
@@ -180,7 +182,7 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         )
 
       {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
+        AppClientScopeFixture.build_and_insert_app_client_scope("READ/WRITE", client.id, user)
 
       expired_access_token =
         Oauth2Util.build_client_credentials_token(
@@ -189,6 +191,13 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
           0,
           secret_key
         )
+
+      refresh_token = Oauth2Util.build_client_credentials_token(
+        client.client_name,
+        scopes.scope,
+        10,
+        secret_key
+      )
 
       expired_refresh_token =
         Oauth2Util.build_client_credentials_token(
@@ -217,10 +226,57 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         "client_id" => "postman001",
         "client_secret" => "postmansecret01"
       }
+      conn = put_req_header(conn, "authorization", "Bearer " <> refresh_token)
 
       assert_raise(
         TokenExpiredError,
         ~r/Token expired/,
+        fn ->
+          post(conn, "/refresh_token", body_params)
+        end
+      )
+    end
+
+    test "Should raise Unauthorized route when invalid roles", %{conn: conn} do
+      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
+      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
+
+      {:ok, client} =
+        AppClientFixture.build_and_insert_app_client(
+          "postman",
+          "postman001",
+          user
+        )
+
+      {:ok, scopes} =
+        AppClientScopeFixture.build_and_insert_app_client_scope("READ", client.id, user)
+
+      refresh_token = Oauth2Util.build_client_credentials_token(
+        client.client_name,
+        scopes.scope,
+        10,
+        secret_key
+      )
+
+      access_token =
+        Oauth2Util.build_client_credentials_token(
+          client.client_name,
+          scopes.scope,
+          client.access_token_expiration_time,
+          secret_key
+        )
+      
+      body_params = %{
+        "access_token" => access_token,
+        "refresh_token" => refresh_token,
+        "client_id" => "postman001",
+        "client_secret" => "postmansecret01"
+      }
+      conn = put_req_header(conn, "authorization", "Bearer " <> refresh_token)
+
+      assert_raise(
+        UnauthorizedRouteError,
+        ~r/Route unauthorized/,
         fn ->
           post(conn, "/refresh_token", body_params)
         end

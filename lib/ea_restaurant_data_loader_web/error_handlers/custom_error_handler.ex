@@ -3,6 +3,7 @@ defmodule EaRestaurantDataLoaderWeb.ErrorHandlers.CustomErrorHandler do
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.BadRequest
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.TokenExpiredError
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidTokenError
+  alias EaRestaurantDataLoader.Lib.ErrorHandlers.UnauthorizedRouteError
 
   def handle(reason) do
 
@@ -18,7 +19,10 @@ defmodule EaRestaurantDataLoaderWeb.ErrorHandlers.CustomErrorHandler do
       %InvalidTokenError{} ->
         {:unauthorized, reason.message}
 
-        _ ->
+      %UnauthorizedRouteError{} ->
+        {:unauthorized, reason.message}
+
+      _ ->
         {:internal_server_error, "Internal Server Error"}
     end
   end
