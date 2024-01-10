@@ -29,8 +29,9 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
       {:ok, scopes} =
         AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", app_client.id, user)
 
+      body_params = %{"grant_type" => "CLIENT_CREDENTIALS"}
       conn = put_req_header(conn, "authorization", "Basic cG9zdG1hbjAwMTpwb3N0bWFuc2VjcmV0MDE=")
-      conn = post(conn, "/login")
+      conn = post(conn, "/login", body_params)
       {_, resp_body_decoded} = ApplicationUtil.decode_json(conn.resp_body)
 
       {_, access_token_decoded} =
@@ -42,17 +43,19 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
     end
 
     test "Should raise InvalidCredentialError when login with wrong credentials", %{conn: conn} do
+      body_params = %{"grant_type" => "CLIENT_CREDENTIALS"}
       conn = put_req_header(conn, "authorization", "Basic cG9zdG1hbjpwb3N0bWFuMDE=")
 
       assert_raise(InvalidCredentialsError, ~r/Invalid Credentials/, fn ->
-        post(conn, "/login")
+        post(conn, "/login", body_params)
       end)
     end
 
     test "Should raise BadRequestError when login with wrong basic auth", %{conn: conn} do
+      body_params = %{"grant_type" => "CLIENT_CREDENTIALS"}
       conn = put_req_header(conn, "authorization", "Basic bad-base64")
 
-      assert_raise(BadRequest, ~r/bad request/, fn -> post(conn, "/login") end)
+      assert_raise(BadRequest, ~r/bad request/, fn -> post(conn, "/login", body_params) end)
     end
 
     test "Should return same access token when refresh an unexpired access token", %{conn: conn} do
@@ -70,20 +73,20 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         AppClientScopeFixture.build_and_insert_app_client_scope("READ/WRITE", client.id, user)
 
       access_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          client.access_token_expiration_time,
-          secret_key
-        )
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: client.access_token_expiration_time,
+          secret_key: secret_key
+        })
 
       refresh_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          client.refresh_token_expiration_time,
-          secret_key
-        )
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: client.refresh_token_expiration_time,
+          secret_key: secret_key
+        })
 
       {:ok, persisted_refresh_token} =
         AppRefreshTokenFixture.build_and_insert_app_refresh_token(
@@ -128,20 +131,20 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         AppClientScopeFixture.build_and_insert_app_client_scope("READ/WRITE", client.id, user)
 
       expired_access_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          0,
-          secret_key
-        )
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: 0,
+          secret_key: secret_key
+        })
 
       refresh_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          client.refresh_token_expiration_time,
-          secret_key
-        )
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: client.refresh_token_expiration_time,
+          secret_key: secret_key
+        })
 
       {:ok, persisted_refresh_token} =
         AppRefreshTokenFixture.build_and_insert_app_refresh_token(
@@ -162,6 +165,7 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         "client_id" => "postman001",
         "client_secret" => "postmansecret01"
       }
+
       conn = put_req_header(conn, "authorization", "Bearer " <> refresh_token)
       conn = post(conn, "/refresh_token", body_params)
       {_, resp_body_decoded} = ApplicationUtil.decode_json(conn.resp_body)
@@ -170,7 +174,9 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
       assert resp_body_decoded["access_token"] != expired_access_token
     end
 
-    test "Should raise TokenExpiredError when refresh access token with expired refresh token", %{conn: conn} do
+    test "Should raise TokenExpiredError when refresh access token with expired refresh token", %{
+      conn: conn
+    } do
       secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
       {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
 
@@ -185,27 +191,28 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         AppClientScopeFixture.build_and_insert_app_client_scope("READ/WRITE", client.id, user)
 
       expired_access_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          0,
-          secret_key
-        )
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: 0,
+          secret_key: secret_key
+        })
 
-      refresh_token = Oauth2Util.build_client_credentials_token(
-        client.client_name,
-        scopes.scope,
-        10,
-        secret_key
-      )
+      refresh_token =
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: 10,
+          secret_key: secret_key
+        })
 
       expired_refresh_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          0,
-          secret_key
-        )
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: 0,
+          secret_key: secret_key
+        })
 
       {:ok, persisted_refresh_token} =
         AppRefreshTokenFixture.build_and_insert_app_refresh_token(
@@ -226,6 +233,7 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         "client_id" => "postman001",
         "client_secret" => "postmansecret01"
       }
+
       conn = put_req_header(conn, "authorization", "Bearer " <> refresh_token)
 
       assert_raise(
@@ -251,27 +259,29 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
       {:ok, scopes} =
         AppClientScopeFixture.build_and_insert_app_client_scope("READ", client.id, user)
 
-      refresh_token = Oauth2Util.build_client_credentials_token(
-        client.client_name,
-        scopes.scope,
-        10,
-        secret_key
-      )
+      refresh_token =
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: 10,
+          secret_key: secret_key
+        })
 
       access_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          client.access_token_expiration_time,
-          secret_key
-        )
-      
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: client.access_token_expiration_time,
+          secret_key: secret_key
+        })
+
       body_params = %{
         "access_token" => access_token,
         "refresh_token" => refresh_token,
         "client_id" => "postman001",
         "client_secret" => "postmansecret01"
       }
+
       conn = put_req_header(conn, "authorization", "Bearer " <> refresh_token)
 
       assert_raise(

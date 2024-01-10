@@ -10,7 +10,7 @@ defmodule EaRestaurantDataLoader.Test.Fixtures.UserFixture do
         type: :INTERNAL,
         username: username,
         password: "1234",
-        role: :CHEF,
+        roles: :CHEF,
         last_name: "test-lastname",
         entity_status: "ACTIVE",
         created_by: 1,

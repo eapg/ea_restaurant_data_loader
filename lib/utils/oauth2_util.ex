@@ -2,6 +2,8 @@ defmodule EaRestaurantDataLoader.Lib.Utils.Oauth2Util do
   alias EaRestaurantDataLoader.Lib.Auth.Token
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidTokenError
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.UnauthorizedRouteError
+  alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidCredentialsError
+  alias EaRestaurantDataLoader.Lib.Constants.Oauth2
 
   @routes_scopes %{"/refresh_token" => "READ/WRITE"}
 
@@ -9,14 +11,38 @@ defmodule EaRestaurantDataLoader.Lib.Utils.Oauth2Util do
     Joken.Signer.create("HS256", secret_key)
   end
 
-  def build_client_credentials_token(client_name, scopes, exp_time, secret_key) do
+  def build_token(%{grant_type: "CLIENT_CREDENTIALS"}, args) do
+    
     extra_claims = %{
-      "exp" => DateTime.utc_now() |> DateTime.add(exp_time, :second) |> DateTime.to_unix(),
-      "clientName" => client_name,
-      "scopes" => scopes
+      "exp" => DateTime.utc_now() |> DateTime.add(args.exp_time, :second) |> DateTime.to_unix(),
+      "clientName" => args.client_name,
+      "scopes" => args.scopes
     }
 
-    Token.generate_and_sign!(extra_claims, signer(secret_key))
+    Token.generate_and_sign!(extra_claims, signer(args.secret_key))
+
+  end
+
+  def build_token(%{grant_type: "PASSWORD"} = args) do
+
+    extra_claims = %{
+      "exp" => DateTime.utc_now() |> DateTime.add(args.exp_time, :second) |> DateTime.to_unix(),
+      "clientName" => args.client_name,
+      "scopes" => args.scopes,
+      "user" => %{
+        "username" => args.user.username,
+        "name" => args.user.name,
+        "last_name" => args.user.last_name,
+        "roles" => args.user.roles
+      }
+    }
+
+    Token.generate_and_sign!(extra_claims, signer(args.secret_key))
+
+  end
+
+  def build_token(_args) do
+    raise InvalidCredentialsError
   end
 
   def get_token_decoded(token, secret_key) do
@@ -83,4 +109,39 @@ defmodule EaRestaurantDataLoader.Lib.Utils.Oauth2Util do
     do:
       @routes_scopes
       |> Map.get(route)
+
+  def build_authentication_response(
+        client,
+        scopes,
+        access_token,
+        refresh_token,
+        grant_type,
+        secret_key
+      ) do
+    client_credential_grand_type = Oauth2.client_credentials()
+    user_credential_grand_type = Oauth2.password()
+
+    case grant_type do
+      ^client_credential_grand_type ->
+        %{
+          :client_name => client.client_name,
+          :access_token => access_token,
+          :refresh_token => refresh_token,
+          :scopes => scopes,
+          :expires_in => client.access_token_expiration_time
+        }
+
+      ^user_credential_grand_type ->
+        {:ok, access_token_decoded} = get_token_decoded(access_token, secret_key)
+
+        %{
+          :client_name => client.client_name,
+          :access_token => access_token,
+          :refresh_token => refresh_token,
+          :scopes => scopes,
+          :expires_in => client.access_token_expiration_time,
+          :user => access_token_decoded["user"]
+        }
+    end
+  end
 end

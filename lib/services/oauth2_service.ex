@@ -1,6 +1,7 @@
 defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
   alias EaRestaurantDataLoader.Repo
   alias EaRestaurantDataLoader.Lib.Entities.AppClient
+  alias EaRestaurantDataLoader.Lib.Entities.User
   alias EaRestaurantDataLoader.Lib.Entities.AppAccessToken
   alias EaRestaurantDataLoader.Lib.Entities.AppRefreshToken
   alias EaRestaurantDataLoader.Lib.Utils.Oauth2Util
@@ -12,6 +13,14 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.TokenExpiredError
 
   def login_client(client_id, client_secret) do
+    login(client_id, client_secret, nil, nil, Oauth2.client_credentials())
+  end
+
+  def login_user(client_id, client_secret, username, passworld) do
+    login(client_id, client_secret, username, passworld, Oauth2.password())
+  end
+
+  defp login(client_id, client_secret, username, password, grant_type) do
     secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
 
     client = get_client_by_client_id_and_entity_status(client_id, Status.active())
@@ -20,34 +29,69 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
 
     [client_scope | _] = client.scopes
 
-    access_token =
-      Oauth2Util.build_client_credentials_token(
-        client.client_name,
-        client_scope.scope,
-        client.access_token_expiration_time,
-        secret_key
-      )
+    client_credential_grand_type = Oauth2.client_credentials()
+    user_credential_grand_type = Oauth2.password()
 
-    refresh_token =
-      Oauth2Util.build_client_credentials_token(
-        client.client_name,
-        client_scope.scope,
-        client.refresh_token_expiration_time,
-        secret_key
-      )
+    tokens =
+      case grant_type do
+        ^client_credential_grand_type ->
+          access_token =
+            Oauth2Util.build_token(%{grant_type: grant_type}, %{
+              client_name: client.client_name,
+              scopes: client_scope.scope,
+              exp_time: client.access_token_expiration_time,
+              secret_key: secret_key
+            })
+
+          refresh_token =
+            Oauth2Util.build_token(%{grant_type: grant_type}, %{
+              client_name: client.client_name,
+              scopes: client_scope.scope,
+              exp_time: client.refresh_token_expiration_time,
+              secret_key: secret_key
+            })
+
+          %{access_token: access_token, refresh_token: refresh_token}
+
+        ^user_credential_grand_type ->
+          user = get_user_by_username_and_entity_status(username, Status.active())
+
+          validate_user_credentials(user, password)
+
+          access_token =
+            Oauth2Util.build_token(%{grant_type: grant_type}, %{
+              client_name: client.client_name,
+              user: user,
+              scopes: client_scope.scope,
+              exp_time: client.access_token_expiration_time,
+              secret_key: secret_key
+            })
+
+          refresh_token =
+            Oauth2Util.build_token(%{grant_type: grant_type}, %{
+              client_name: client.client_name,
+              user: user,
+              scopes: client_scope.scope,
+              exp_time: client.refresh_token_expiration_time,
+              secret_key: secret_key
+            })
+
+          %{access_token: access_token, refresh_token: refresh_token}
+      end
 
     {:ok, persisted_refresh_token} =
-      create_refresh_token(refresh_token, client, Oauth2.client_credentials())
+      create_refresh_token(tokens.refresh_token, client, Oauth2.client_credentials())
 
-    {:ok, _} = create_access_token(access_token, persisted_refresh_token)
+    {:ok, _} = create_access_token(tokens.access_token, persisted_refresh_token)
 
-    %{
-      :client_name => client.client_name,
-      :access_token => access_token,
-      :refresh_token => refresh_token,
-      :scopes => client_scope.scope,
-      :expires_in => client.access_token_expiration_time
-    }
+    Oauth2Util.build_authentication_response(
+      client,
+      client_scope.scope,
+      tokens.access_token,
+      tokens.refresh_token,
+      grant_type,
+      secret_key
+    )
   end
 
   def refresh_token(refresh_token, access_token, client_id, client_secret) do
@@ -65,7 +109,7 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
           :access_token => access_token,
           :refresh_token => refresh_token,
           :scopes => client_scope.scope,
-          :expires_in => Oauth2Util.get_expiration_time_in_seconds(refresh_token, secret_key)
+          :expires_in => Oauth2Util.get_expiration_time_in_seconds(access_token, secret_key)
         }
 
       {:error, _} ->
@@ -75,12 +119,12 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
               get_app_refresh_token_by_token_and_client_id(refresh_token, client.id)
 
             new_access_token =
-              Oauth2Util.build_client_credentials_token(
-                client.client_name,
-                client_scope.scope,
-                client.access_token_expiration_time,
-                secret_key
-              )
+              Oauth2Util.build_token(%{grant_type: app_refresh_token.grant_type}, %{
+                client_name: client.client_name,
+                scopes: client_scope.scope,
+                exp_time: client.access_token_expiration_time,
+                secret_key: secret_key
+              })
 
             delete_access_token_by_app_refresh_token_id(app_refresh_token.id)
 
@@ -95,6 +139,28 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
           {:error, _} ->
             raise TokenExpiredError
         end
+    end
+  end
+
+  defp validate_user_credentials(user, password) do
+    validated_user =
+      case user do
+        %User{} ->
+          user
+
+        _ ->
+          raise InvalidCredentialsError
+      end
+
+    password_struct =
+      ApplicationUtil.build_password_type_from_env(password, validated_user.password)
+
+    case PasswordEncoder.validate_password(password_struct) do
+      true ->
+        {:ok}
+
+      false ->
+        raise InvalidCredentialsError
     end
   end
 
@@ -119,6 +185,9 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
         raise InvalidCredentialsError
     end
   end
+
+  defp get_user_by_username_and_entity_status(username, entity_status),
+    do: Repo.get_by(User, username: username, entity_status: entity_status)
 
   defp get_client_by_client_id_and_entity_status(client_id, entity_status),
     do:

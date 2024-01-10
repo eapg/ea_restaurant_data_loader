@@ -54,20 +54,20 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
         AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
 
       expired_access_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          0,
-          secret_key
-        )
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: 0,
+          secret_key: secret_key
+        })
 
       refresh_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          client.refresh_token_expiration_time,
-          secret_key
-        )
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: client.refresh_token_expiration_time,
+          secret_key: secret_key
+        })
 
       {:ok, persisted_refresh_token} =
         AppRefreshTokenFixture.build_and_insert_app_refresh_token(
@@ -108,20 +108,20 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
         AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
 
       access_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          client.access_token_expiration_time,
-          secret_key
-        )
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: client.access_token_expiration_time,
+          secret_key: secret_key
+        })
 
       refresh_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          client.refresh_token_expiration_time,
-          secret_key
-        )
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: client.refresh_token_expiration_time,
+          secret_key: secret_key
+        })
 
       {:ok, persisted_refresh_token} =
         AppRefreshTokenFixture.build_and_insert_app_refresh_token(
@@ -162,20 +162,20 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
         AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
 
       expired_access_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          0,
-          secret_key
-        )
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: 0,
+          secret_key: secret_key
+        })
 
       expired_refresh_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          0,
-          secret_key
-        )
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: 0,
+          secret_key: secret_key
+        })
 
       {:ok, persisted_refresh_token} =
         AppRefreshTokenFixture.build_and_insert_app_refresh_token(
@@ -205,7 +205,6 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
     end
 
     test "oauth2-login wrong credentials" do
-
       {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
 
       {:ok, _app_client} =
@@ -216,13 +215,12 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
         )
 
       assert_raise(
-          InvalidCredentialsError,
-          ~r/Invalid Credentials/,
-          fn ->
-            Oauth2Service.login_client("wrong-client-id", "wrong-client-secret")
-          end
-        )
-      end
-
+        InvalidCredentialsError,
+        ~r/Invalid Credentials/,
+        fn ->
+          Oauth2Service.login_client("wrong-client-id", "wrong-client-secret")
+        end
+      )
+    end
   end
 end

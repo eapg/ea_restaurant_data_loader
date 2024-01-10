@@ -7,7 +7,7 @@ defmodule EaRestaurantDataLoader.Lib.Entities.User do
     field :type, Ecto.Enum, values: [:INTERNAL, :EXTERNAL]
     field :username, :string
     field :password, :string
-    field :role, Ecto.Enum, values: [:CHEF, :CLIENT, :CASHIER, :SEEDER, :KITCHEN_SIMULATOR]
+    field :roles, Ecto.Enum, values: [:CHEF, :CLIENT, :CASHIER, :SEEDER, :KITCHEN_SIMULATOR, :ADMINISTRATOR]
     field :last_name, :string
     field :entity_status, :string
     field(:created_by, :integer)
@@ -26,7 +26,7 @@ defmodule EaRestaurantDataLoader.Lib.Entities.User do
       :last_name,
       :username,
       :password,
-      :role,
+      :roles,
       :type,
       :entity_status,
       :created_by,
@@ -39,7 +39,7 @@ defmodule EaRestaurantDataLoader.Lib.Entities.User do
       :last_name,
       :username,
       :password,
-      :role,
+      :roles,
       :type,
       :entity_status,
       :created_by,
