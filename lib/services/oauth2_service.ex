@@ -12,6 +12,86 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
   alias EaRestaurantDataLoader.Lib.Utils.ApplicationUtil
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.TokenExpiredError
 
+  def login_new(%{grant_type: "client_credentials", client_id: client_id, client_secret: client_secret}) do
+    access_token =
+      Oauth2Util.build_token(%{grant_type: grant_type}, %{
+        client_name: client.client_name,
+        scopes: client_scope.scope,
+        exp_time: client.access_token_expiration_time,
+        secret_key: secret_key
+      })
+
+    refresh_token =
+      Oauth2Util.build_token(%{grant_type: grant_type}, %{
+        client_name: client.client_name,
+        scopes: client_scope.scope,
+        exp_time: client.refresh_token_expiration_time,
+        secret_key: secret_key
+      })
+
+    tokens = %{access_token: access_token, refresh_token: refresh_token}
+
+    {:ok, persisted_refresh_token} =
+      create_refresh_token(tokens.refresh_token, client, Oauth2.client_credentials())
+
+    {:ok, _} = create_access_token(tokens.access_token, persisted_refresh_token)
+
+    Oauth2Util.build_authentication_response(
+      client,
+      client_scope.scope,
+      tokens.access_token,
+      tokens.refresh_token,
+      grant_type,
+      secret_key
+    )
+  end
+
+  def login_new(%{
+    grant_type: "password",
+    client_id: client_id,
+    client_secret: client_secret,
+    username: username,
+    password: password
+    }) do
+      user = get_user_by_username_and_entity_status(username, Status.active())
+
+      validate_user_credentials(user, password)
+
+      access_token =
+        Oauth2Util.build_token(%{grant_type: grant_type}, %{
+          client_name: client.client_name,
+          user: user,
+          scopes: client_scope.scope,
+          exp_time: client.access_token_expiration_time,
+          secret_key: secret_key
+        })
+
+      refresh_token =
+        Oauth2Util.build_token(%{grant_type: grant_type}, %{
+          client_name: client.client_name,
+          user: user,
+          scopes: client_scope.scope,
+          exp_time: client.refresh_token_expiration_time,
+          secret_key: secret_key
+        })
+
+      tokens = %{access_token: access_token, refresh_token: refresh_token}
+
+      {:ok, persisted_refresh_token} =
+        create_refresh_token(tokens.refresh_token, client, Oauth2.client_credentials())
+
+      {:ok, _} = create_access_token(tokens.access_token, persisted_refresh_token)
+
+      Oauth2Util.build_authentication_response(
+        client,
+        client_scope.scope,
+        tokens.access_token,
+        tokens.refresh_token,
+        grant_type,
+        secret_key
+      )
+  end
+
   def login_client(client_id, client_secret) do
     login(client_id, client_secret, nil, nil, Oauth2.client_credentials())
   end

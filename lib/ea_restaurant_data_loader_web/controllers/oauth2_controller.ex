@@ -6,6 +6,35 @@ defmodule EaRestaurantDataLoaderWeb.Controllers.Oauth2Controller do
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.BadRequest
   alias EaRestaurantDataLoader.Lib.Constants.Oauth2
 
+  def login_new(conn, _params) do
+
+    [client_id, client_secret] =
+      try do
+        [basic_auth | _] = conn |> get_req_header("authorization")
+
+        Oauth2Util.extract_client_credentials_from_basic_auth(basic_auth)
+      rescue
+        _ in MatchError -> raise BadRequest
+      end
+
+    login_credentials = conn.body_params
+    %{"grant_type" => grant_type} = login_credentials
+
+    client_credential_grand_type = Oauth2.client_credentials()
+    user_credential_grand_type = Oauth2.password()
+
+    {_, login_json_response} = Oauth2Service.login_new(%{
+        client_id: client_id,
+        client_secret: client_secret,
+        username: Map.get(login_credentials, "username"),
+        password: Map.get(login_credentials, "password"),
+        grant_type: grant_type
+      })
+      |> ApplicationUtil.parse_to_json()
+
+    send_resp(conn, :ok, login_json_response)
+  end
+
   def login(conn, _params) do
 
     [client_id, client_secret] =
