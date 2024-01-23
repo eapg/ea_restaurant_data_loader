@@ -9,14 +9,34 @@ defmodule EaRestaurantDataLoader.Lib.Utils.Oauth2Util do
     Joken.Signer.create("HS256", secret_key)
   end
 
-  def build_client_credentials_token(client_name, scopes, exp_time, secret_key) do
+  def build_token(%{grant_type: "CLIENT_CREDENTIALS"}, args) do
     extra_claims = %{
-      "exp" => DateTime.utc_now() |> DateTime.add(exp_time, :second) |> DateTime.to_unix(),
-      "clientName" => client_name,
-      "scopes" => scopes
+      "exp" => DateTime.utc_now() |> DateTime.add(args.exp_time, :second) |> DateTime.to_unix(),
+      "clientName" => args.client_name,
+      "scopes" => args.scopes
     }
 
-    Token.generate_and_sign!(extra_claims, signer(secret_key))
+    Token.generate_and_sign!(extra_claims, signer(args.secret_key))
+  end
+
+  def build_token(%{grant_type: "PASSWORD"}, args) do
+    extra_claims = %{
+      "exp" => DateTime.utc_now() |> DateTime.add(args.exp_time, :second) |> DateTime.to_unix(),
+      "clientName" => args.client_name,
+      "scopes" => args.scopes,
+      "user" => %{
+        "username" => args.user.username,
+        "name" => args.user.name,
+        "last_name" => args.user.last_name,
+        "roles" => args.user.roles
+      }
+    }
+
+    Token.generate_and_sign!(extra_claims, signer(args.secret_key))
+  end
+
+  def build_token(_args) do
+    raise InvalidCredentialsError
   end
 
   def get_token_decoded(token, secret_key) do
