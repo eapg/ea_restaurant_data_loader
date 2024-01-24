@@ -80,7 +80,7 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
       assert login_response.user.username == user.username
     end
 
-    test " refresh token when expired access token" do
+    test " refresh token when client credentials expired access token" do
       secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
       {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
 
@@ -246,6 +246,65 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
           )
         end
       )
+    end
+
+    test " refresh token when user credentials expired access token" do
+      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
+      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
+
+      {:ok, client} =
+        AppClientFixture.build_and_insert_app_client(
+          "postman",
+          "postman001",
+          user
+        )
+
+      {:ok, scopes} =
+        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
+
+      expired_access_token =
+        Oauth2Util.build_token(%{grant_type: "PASSWORD"}, %{
+          client_name: client.client_name,
+          user: user,
+          scopes: scopes.scope,
+          exp_time: 0,
+          secret_key: secret_key
+        })
+
+      refresh_token =
+        Oauth2Util.build_token(
+          %{grant_type: "PASSWORD"},
+          %{
+            client_name: client.client_name,
+            user: user,
+            scopes: scopes.scope,
+            exp_time: client.refresh_token_expiration_time,
+            secret_key: secret_key
+          }
+        )
+
+      {:ok, persisted_refresh_token} =
+        AppRefreshTokenFixture.build_and_insert_app_refresh_token(
+          refresh_token,
+          "PASSWORD",
+          client.id
+        )
+
+      {:ok, _} =
+        AppAccessTokenFixture.build_and_insert_app_access_token(
+          expired_access_token,
+          persisted_refresh_token.id
+        )
+
+      refresh_token_response =
+        Oauth2Service.refresh_token(
+          refresh_token,
+          expired_access_token,
+          "postman001",
+          "postmansecret01"
+        )
+
+      assert expired_access_token != refresh_token_response.access_token
     end
 
     test "oauth2-login wrong credentials" do

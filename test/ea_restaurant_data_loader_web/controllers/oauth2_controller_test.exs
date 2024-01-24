@@ -111,19 +111,22 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         AppClientScopeFixture.build_and_insert_app_client_scope("READ/WRITE", client.id, user)
 
       access_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          client.access_token_expiration_time,
-          secret_key
-        )
+        Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
+          client_name: client.client_name,
+          scopes: scopes.scope,
+          exp_time: client.refresh_token_expiration_time,
+          secret_key: secret_key
+        })
 
       refresh_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          client.refresh_token_expiration_time,
-          secret_key
+        Oauth2Util.build_token(
+          %{grant_type: "CLIENT_CREDENTIALS"},
+          %{
+            client_name: client.client_name,
+            scopes: scopes.scope,
+            exp_time: client.refresh_token_expiration_time,
+            secret_key: secret_key
+          }
         )
 
       {:ok, persisted_refresh_token} =
@@ -169,19 +172,25 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         AppClientScopeFixture.build_and_insert_app_client_scope("READ/WRITE", client.id, user)
 
       expired_access_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          0,
-          secret_key
+        Oauth2Util.build_token(
+          %{grant_type: "CLIENT_CREDENTIALS"},
+          %{
+            client_name: client.client_name,
+            scopes: scopes.scope,
+            exp_time: 0,
+            secret_key: secret_key
+          }
         )
 
       refresh_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          client.refresh_token_expiration_time,
-          secret_key
+        Oauth2Util.build_token(
+          %{grant_type: "CLIENT_CREDENTIALS"},
+          %{
+            client_name: client.client_name,
+            scopes: scopes.scope,
+            exp_time: client.refresh_token_expiration_time,
+            secret_key: secret_key
+          }
         )
 
       {:ok, persisted_refresh_token} =
@@ -229,27 +238,36 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         AppClientScopeFixture.build_and_insert_app_client_scope("READ/WRITE", client.id, user)
 
       expired_access_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          0,
-          secret_key
+        Oauth2Util.build_token(
+          %{grant_type: "CLIENT_CREDENTIALS"},
+          %{
+            client_name: client.client_name,
+            scopes: scopes.scope,
+            exp_time: 0,
+            secret_key: secret_key
+          }
         )
 
       refresh_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          10,
-          secret_key
+        Oauth2Util.build_token(
+          %{grant_type: "CLIENT_CREDENTIALS"},
+          %{
+            client_name: client.client_name,
+            scopes: scopes.scope,
+            exp_time: 10,
+            secret_key: secret_key
+          }
         )
 
       expired_refresh_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          0,
-          secret_key
+        Oauth2Util.build_token(
+          %{grant_type: "CLIENT_CREDENTIALS"},
+          %{
+            client_name: client.client_name,
+            scopes: scopes.scope,
+            exp_time: 0,
+            secret_key: secret_key
+          }
         )
 
       {:ok, persisted_refresh_token} =
@@ -298,19 +316,25 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         AppClientScopeFixture.build_and_insert_app_client_scope("READ", client.id, user)
 
       refresh_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          10,
-          secret_key
+        Oauth2Util.build_token(
+          %{grant_type: "CLIENT_CREDENTIALS"},
+          %{
+            client_name: client.client_name,
+            scopes: scopes.scope,
+            exp_time: 10,
+            secret_key: secret_key
+          }
         )
 
       access_token =
-        Oauth2Util.build_client_credentials_token(
-          client.client_name,
-          scopes.scope,
-          client.access_token_expiration_time,
-          secret_key
+        Oauth2Util.build_token(
+          %{grant_type: "CLIENT_CREDENTIALS"},
+          %{
+            client_name: client.client_name,
+            scopes: scopes.scope,
+            exp_time: client.access_token_expiration_time,
+            secret_key: secret_key
+          }
         )
 
       body_params = %{
