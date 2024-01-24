@@ -131,13 +131,17 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
             app_refresh_token =
               get_app_refresh_token_by_token_and_client_id(refresh_token, client.id)
 
+            {:ok, decoded_refresh_token} = Oauth2Util.get_token_decoded(refresh_token, secret_key)
+            user = get_user_from_decoded_token(decoded_refresh_token)
+
             new_access_token =
-              Oauth2Util.build_client_credentials_token(
-                client.client_name,
-                client_scope.scope,
-                client.access_token_expiration_time,
-                secret_key
-              )
+              Oauth2Util.build_token(%{grant_type: app_refresh_token.grant_type}, %{
+                client_name: client.client_name,
+                user: user,
+                scopes: client_scope.scope,
+                exp_time: client.access_token_expiration_time,
+                secret_key: secret_key
+              })
 
             delete_access_token_by_app_refresh_token_id(app_refresh_token.id)
 
@@ -152,6 +156,17 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
           {:error, _} ->
             raise TokenExpiredError
         end
+    end
+  end
+
+  defp get_user_from_decoded_token(decoded_token) do
+    case Map.get(decoded_token, "user") != nil do
+      true ->
+        %{"user" => %{"username" => username}} = decoded_token
+        get_user_by_username_and_entity_status(username, Status.active())
+
+      false ->
+        nil
     end
   end
 

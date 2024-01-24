@@ -2,6 +2,7 @@ defmodule EaRestaurantDataLoader.Lib.Utils.Oauth2Util do
   alias EaRestaurantDataLoader.Lib.Auth.Token
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidTokenError
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.UnauthorizedRouteError
+  alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidCredentialsError
 
   @routes_scopes %{"/refresh_token" => "READ/WRITE"}
 
