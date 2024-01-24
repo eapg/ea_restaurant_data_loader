@@ -34,10 +34,11 @@ defmodule EaRestaurantDataLoader.Test.Lib.Utils.Oauth2UtilTest do
         })
 
       {_, claims} = Oauth2Util.get_token_decoded(token, "1234")
+      %{"user" => %{"username" => username, "name" => name}} = claims
       assert "ea_restaurant" == claims["clientName"]
       assert "READ" == claims["scopes"]
-      assert "test-user" == claims.user.name
-      assert "test-username" == claims.user.username
+      assert "test-user" == name
+      assert "test-username" == username
     end
 
     test " verify expired token" do
