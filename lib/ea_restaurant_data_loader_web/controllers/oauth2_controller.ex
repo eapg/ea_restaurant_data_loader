@@ -15,8 +15,18 @@ defmodule EaRestaurantDataLoaderWeb.Controllers.Oauth2Controller do
         _ in MatchError -> raise BadRequest
       end
 
+    login_credentials = conn.body_params
+    %{"grant_type" => grant_type} = login_credentials
+
     {_, login_json_response} =
-      Oauth2Service.login_client(client_id, client_secret) |> ApplicationUtil.parse_to_json()
+      Oauth2Service.login(%{
+        client_id: client_id,
+        client_secret: client_secret,
+        username: Map.get(login_credentials, "username"),
+        password: Map.get(login_credentials, "password"),
+        grant_type: grant_type
+      })
+      |> ApplicationUtil.parse_to_json()
 
     send_resp(conn, :ok, login_json_response)
   end
