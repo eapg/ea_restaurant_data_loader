@@ -39,9 +39,9 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
 
       %{"clientName" => client_name_value, "scopes" => scopes_value} = access_token_decoded
       assert client_name_value == app_client.client_name
-      assert scopes_value == scopes.scope
+      assert scopes_value == String.split(scopes.scope, ",")
       assert login_response.expires_in == app_client.access_token_expiration_time
-      assert login_response.scopes == scopes.scope
+      assert login_response.scopes == String.split(scopes.scope, ",")
     end
 
     test " User credential login" do
@@ -73,9 +73,9 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
 
       %{"clientName" => client_name_value, "scopes" => scopes_value} = access_token_decoded
       assert client_name_value == app_client.client_name
-      assert scopes_value == scopes.scope
+      assert scopes_value == String.split(scopes.scope, ",")
       assert login_response.expires_in == app_client.access_token_expiration_time
-      assert login_response.scopes == scopes.scope
+      assert login_response.scopes == String.split(scopes.scope, ",")
       assert login_response.user.name == user.name
       assert login_response.user.username == user.username
     end

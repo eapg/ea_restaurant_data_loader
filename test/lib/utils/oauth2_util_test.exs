@@ -18,7 +18,7 @@ defmodule EaRestaurantDataLoader.Test.Lib.Utils.Oauth2UtilTest do
 
       {_, claims} = Oauth2Util.get_token_decoded(token, "1234")
       assert "ea_restaurant" == claims["clientName"]
-      assert "READ" == claims["scopes"]
+      assert ["READ"] == claims["scopes"]
     end
 
     test "build user credential token successfully" do
@@ -36,7 +36,7 @@ defmodule EaRestaurantDataLoader.Test.Lib.Utils.Oauth2UtilTest do
       {_, claims} = Oauth2Util.get_token_decoded(token, "1234")
       %{"user" => %{"username" => username, "name" => name}} = claims
       assert "ea_restaurant" == claims["clientName"]
-      assert "READ" == claims["scopes"]
+      assert ["READ"] == claims["scopes"]
       assert "test-user" == name
       assert "test-username" == username
     end

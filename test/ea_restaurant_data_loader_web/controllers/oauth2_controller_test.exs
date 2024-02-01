@@ -39,7 +39,7 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         Oauth2Util.get_token_decoded(resp_body_decoded["access_token"], secret_key)
 
       assert access_token_decoded["clientName"] == app_client.client_name
-      assert access_token_decoded["scopes"] == scopes.scope
+      assert access_token_decoded["scopes"] == String.split(scopes.scope, ",")
       assert conn.status == 200
     end
 
@@ -73,7 +73,7 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
 
       user_from_token = Map.get(access_token_decoded, "user")
       assert access_token_decoded["clientName"] == app_client.client_name
-      assert access_token_decoded["scopes"] == scopes.scope
+      assert access_token_decoded["scopes"] == String.split(scopes.scope, ",")
       assert user_from_token["name"] == user.name
       assert user_from_token["username"] == user.username
 
@@ -108,7 +108,7 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         )
 
       {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ/WRITE", client.id, user)
+        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
 
       access_token =
         Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
@@ -169,7 +169,7 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         )
 
       {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ/WRITE", client.id, user)
+        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
 
       expired_access_token =
         Oauth2Util.build_token(
@@ -235,7 +235,7 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         )
 
       {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ/WRITE", client.id, user)
+        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
 
       expired_access_token =
         Oauth2Util.build_token(
@@ -313,7 +313,7 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
         )
 
       {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ", client.id, user)
+        AppClientScopeFixture.build_and_insert_app_client_scope("NOT", client.id, user)
 
       refresh_token =
         Oauth2Util.build_token(

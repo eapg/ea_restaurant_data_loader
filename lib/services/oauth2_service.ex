@@ -50,7 +50,7 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
       :client_name => client.client_name,
       :access_token => access_token,
       :refresh_token => refresh_token,
-      :scopes => client_scope.scope,
+      :scopes => String.split(client_scope.scope, ","),
       :expires_in => client.access_token_expiration_time
     }
   end
@@ -101,7 +101,7 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
       :client_name => client.client_name,
       :access_token => access_token,
       :refresh_token => refresh_token,
-      :scopes => client_scope.scope,
+      :scopes => String.split(client_scope.scope, ","),
       :expires_in => client.access_token_expiration_time,
       :user => user
     }
@@ -121,7 +121,7 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
           :client_name => client.client_name,
           :access_token => access_token,
           :refresh_token => refresh_token,
-          :scopes => client_scope.scope,
+          :scopes => String.split(client_scope.scope, ","),
           :expires_in => Oauth2Util.get_expiration_time_in_seconds(refresh_token, secret_key)
         }
 
@@ -149,7 +149,7 @@ defmodule EaRestaurantDataLoader.Lib.Services.Oauth2Service do
               :client_name => client.client_name,
               :access_token => new_access_token,
               :refresh_token => refresh_token,
-              :scopes => client_scope.scope,
+              :scopes => String.split(client_scope.scope, ","),
               :expires_in => client.access_token_expiration_time
             }
 

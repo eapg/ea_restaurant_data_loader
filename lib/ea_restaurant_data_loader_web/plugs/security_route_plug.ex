@@ -1,5 +1,4 @@
 defmodule EaRestaurantDataLoaderWeb.Plugs.SecurityRoutePlug do
-
   import Plug.Conn
 
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.UnauthorizedRouteError
@@ -10,9 +9,18 @@ defmodule EaRestaurantDataLoaderWeb.Plugs.SecurityRoutePlug do
   def call(conn, _) do
     secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
 
-    get_token(conn) |>
-    Oauth2Util.validate_route_protection(secret_key,conn)
+    token = get_token(conn)
 
+    {{scopes_status, _}, {roles_status, _}} =
+      Oauth2Util.validate_roles_and_scopes(token, secret_key, conn)
+
+    case {scopes_status, roles_status} do
+      {:ok, :ok} ->
+        conn
+
+      _ ->
+        raise UnauthorizedRouteError
+    end
   end
 
   defp get_token(conn) do
@@ -21,6 +29,4 @@ defmodule EaRestaurantDataLoaderWeb.Plugs.SecurityRoutePlug do
       _ -> raise UnauthorizedRouteError
     end
   end
-
-
 end
