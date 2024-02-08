@@ -1,3 +1,3 @@
 defmodule Structs.SecuredHttpRequestUrlPermissions do
-      defstruct [:roles, :scopes]
+  defstruct [:roles, :scopes]
 end

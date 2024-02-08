@@ -6,10 +6,10 @@ defmodule EaRestaurantDataLoaderWeb.ErrorHandlers.CustomErrorHandler do
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.UnauthorizedRouteError
 
   def handle(reason) do
-
     case reason do
       %InvalidCredentialsError{} ->
         {:unauthorized, reason.message}
+
       %BadRequest{} ->
         {:bad_request, reason.message}
 

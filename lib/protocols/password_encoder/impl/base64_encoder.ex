@@ -10,6 +10,4 @@ defimpl PasswordEncoder, for: Base64 do
   def encode_password(pass_data) do
     Base.encode64(pass_data.password)
   end
-  
-end  
-
+end
