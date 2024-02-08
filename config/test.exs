@@ -20,4 +20,3 @@ config :ea_restaurant_data_loader, EaRestaurantDataLoaderWeb.Endpoint,
 
 # Print only warnings and errors during test
 config :logger, level: :warning
-
