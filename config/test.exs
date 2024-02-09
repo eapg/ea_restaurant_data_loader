@@ -12,6 +12,13 @@ config :ea_restaurant_data_loader, EaRestaurantDataLoader.Repo,
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
 
+# Configure your database for mongoDB
+config :ea_restaurant_data_loader, EaRestaurantDataLoader.MongoRepo,
+  url: "mongodb://localhost:27017/ea_restaurant_data_loader_test",
+  timeout: 60_000,
+  idle_interval: 10_000,
+  queue_target: 5_000
+
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :ea_restaurant_data_loader, EaRestaurantDataLoaderWeb.Endpoint,

@@ -1,6 +1,6 @@
 import Config
 
-# Configure your database
+# Configure your database for postgresql
 config :ea_restaurant_data_loader, EaRestaurantDataLoader.Repo,
   username: "postgres",
   password: "1234",
@@ -8,6 +8,13 @@ config :ea_restaurant_data_loader, EaRestaurantDataLoader.Repo,
   hostname: "localhost",
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
+
+# Configure your database for mongoDB
+config :ea_restaurant_data_loader, EaRestaurantDataLoader.MongoRepo,
+  url: "mongodb://localhost:27017/ea_restaurant_data_loader",
+  timeout: 60_000,
+  idle_interval: 10_000,
+  queue_target: 5_000
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
