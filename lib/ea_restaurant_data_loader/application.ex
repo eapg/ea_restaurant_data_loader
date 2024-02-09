@@ -14,7 +14,9 @@ defmodule EaRestaurantDataLoader.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: EaRestaurantDataLoader.PubSub},
       # Start the Endpoint (http/https)
-      EaRestaurantDataLoaderWeb.Endpoint
+      EaRestaurantDataLoaderWeb.Endpoint,
+      # Start the Mongo repository
+      {Mongo, EaRestaurantDataLoader.MongoRepo.config()}
       # Start a worker by calling: EaRestaurantDataLoader.Worker.start_link(arg)
       # {EaRestaurantDataLoader.Worker, arg}
     ]

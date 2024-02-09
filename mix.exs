@@ -42,7 +42,8 @@ defmodule EaRestaurantDataLoader.MixProject do
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
       {:joken, "~> 2.6.0"},
-      {:poison, "~> 5.0"}
+      {:poison, "~> 5.0"},
+      {:mongodb_driver, "~> 1.2.1"}
     ]
   end
 
