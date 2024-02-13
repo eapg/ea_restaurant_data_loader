@@ -17,12 +17,15 @@ defmodule EaRestaurantDataLoaderWeb.Router do
     pipe_through([:api])
 
     post("/login", Oauth2Controller, :login)
+
   end
 
   scope "/", EaRestaurantDataLoaderWeb.Controllers do
     pipe_through([:protected_api])
 
     post("/refresh_token", Oauth2Controller, :refresh_token)
+    get("/products", ProductController, :get_products)
+    post("/products/import", ProductController, :import_products)
   end
 
   @impl Plug.ErrorHandler
