@@ -4,9 +4,18 @@ defmodule EaRestaurantDataLoader.Lib.Utils.Oauth2Util do
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.UnauthorizedRouteError
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidCredentialsError
   alias Structs.SecuredHttpRequestUrlPermissions
+  alias EaRestaurantDataLoader.Lib.Structs.SecuredHttpRequestUrl
 
   @routes_roles_and_scopes %{
-    "/refresh_token" => %SecuredHttpRequestUrlPermissions{scopes: ["READ", "WRITE"]}
+    %SecuredHttpRequestUrl{path: "/refresh_token", method: "POST"} =>
+    %SecuredHttpRequestUrlPermissions{scopes: ["READ", "WRITE"]},
+    %SecuredHttpRequestUrl{path: "/products", method: "GET"} => %SecuredHttpRequestUrlPermissions{
+      scopes: ["READ", "WRITE"],
+      roles: ["CHEF"]
+    },
+    %SecuredHttpRequestUrl{path: "/products/import", method: "POST"} => %SecuredHttpRequestUrlPermissions{
+      scopes: ["READ", "WRITE"],
+      roles: ["CHEF"]}
   }
 
   defp signer(secret_key) do
@@ -93,11 +102,18 @@ defmodule EaRestaurantDataLoader.Lib.Utils.Oauth2Util do
         {:error, _} ->
           raise UnauthorizedRouteError
       end
-
-    access_token_roles = Map.get(token_decoded, "roles")
+    
+    user_from_acces_token = Map.get(token_decoded, "user", %{})
+    access_token_roles = Map.get(user_from_acces_token, "roles")
     access_token_scopes = Map.get(token_decoded, "scopes")
     route_url_path = conn.request_path
-    route_permissions = Map.get(@routes_roles_and_scopes, route_url_path)
+    route_url_method = conn.method
+
+    route_permissions =
+      Map.get(@routes_roles_and_scopes, %SecuredHttpRequestUrl{
+        path: route_url_path,
+        method: route_url_method
+      })
 
     {scopes_status, scope_status_reason} =
       validate_scopes(%{
