@@ -11,22 +11,25 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.InvalidCredentialsError
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.TokenExpiredError
 
+  setup do
+    secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
+    {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
+
+    {:ok, app_client} =
+      AppClientFixture.build_and_insert_app_client("postman", "postman001", user)
+
+    {:ok, scopes} =
+      AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", app_client.id, user)
+
+    {:ok, secret_key: secret_key, user: user, app_client: app_client, scopes: scopes}
+  end
+
   describe "oauth2 service test" do
-    test " client credential login" do
-      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
-
-      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
-
-      {:ok, app_client} =
-        AppClientFixture.build_and_insert_app_client(
-          "postman",
-          "postman001",
-          user
-        )
-
-      {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", app_client.id, user)
-
+    test " client credential login", %{
+      secret_key: secret_key,
+      app_client: app_client,
+      scopes: scopes
+    } do
       login_response =
         Oauth2Service.login(%{
           grant_type: "CLIENT_CREDENTIALS",
@@ -44,21 +47,12 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
       assert login_response.scopes == String.split(scopes.scope, ",")
     end
 
-    test " User credential login" do
-      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
-
-      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
-
-      {:ok, app_client} =
-        AppClientFixture.build_and_insert_app_client(
-          "postman",
-          "postman001",
-          user
-        )
-
-      {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", app_client.id, user)
-
+    test " User credential login", %{
+      secret_key: secret_key,
+      user: user,
+      app_client: app_client,
+      scopes: scopes
+    } do
       login_response =
         Oauth2Service.login(%{
           grant_type: "PASSWORD",
@@ -80,20 +74,11 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
       assert login_response.user.username == user.username
     end
 
-    test " refresh token when client credentials expired access token" do
-      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
-      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
-
-      {:ok, client} =
-        AppClientFixture.build_and_insert_app_client(
-          "postman",
-          "postman001",
-          user
-        )
-
-      {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
-
+    test " refresh token when client credentials expired access token", %{
+      secret_key: secret_key,
+      app_client: client,
+      scopes: scopes
+    } do
       expired_access_token =
         Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
           client_name: client.client_name,
@@ -137,20 +122,11 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
       assert expired_access_token != refresh_token_response.access_token
     end
 
-    test " refresh token when not expired access token" do
-      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
-      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
-
-      {:ok, client} =
-        AppClientFixture.build_and_insert_app_client(
-          "postman",
-          "postman001",
-          user
-        )
-
-      {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
-
+    test " refresh token when not expired access token", %{
+      secret_key: secret_key,
+      app_client: client,
+      scopes: scopes
+    } do
       access_token =
         Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
           client_name: client.client_name,
@@ -191,20 +167,11 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
       assert access_token == refresh_token_response.access_token
     end
 
-    test "refresh token when expired refresh token" do
-      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
-      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
-
-      {:ok, client} =
-        AppClientFixture.build_and_insert_app_client(
-          "postman",
-          "postman001",
-          user
-        )
-
-      {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
-
+    test "refresh token when expired refresh token", %{
+      secret_key: secret_key,
+      app_client: client,
+      scopes: scopes
+    } do
       expired_access_token =
         Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
           client_name: client.client_name,
@@ -248,20 +215,12 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
       )
     end
 
-    test " refresh token when user credentials expired access token" do
-      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
-      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
-
-      {:ok, client} =
-        AppClientFixture.build_and_insert_app_client(
-          "postman",
-          "postman001",
-          user
-        )
-
-      {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
-
+    test " refresh token when user credentials expired access token", %{
+      secret_key: secret_key,
+      user: user,
+      app_client: client,
+      scopes: scopes
+    } do
       expired_access_token =
         Oauth2Util.build_token(%{grant_type: "PASSWORD"}, %{
           client_name: client.client_name,
@@ -308,15 +267,6 @@ defmodule EaRestaurantDataLoader.Test.Lib.Services.Oauth2ServiceTest do
     end
 
     test "oauth2-login wrong credentials" do
-      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
-
-      {:ok, _app_client} =
-        AppClientFixture.build_and_insert_app_client(
-          "postman",
-          "postman001",
-          user
-        )
-
       assert_raise(
         InvalidCredentialsError,
         ~r/Invalid Credentials/,

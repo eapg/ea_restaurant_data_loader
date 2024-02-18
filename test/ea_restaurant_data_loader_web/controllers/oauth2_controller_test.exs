@@ -13,22 +13,31 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.TokenExpiredError
   alias EaRestaurantDataLoader.Lib.ErrorHandlers.UnauthorizedRouteError
 
+  setup do
+    secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
+
+    {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
+
+    {:ok, app_client} =
+      AppClientFixture.build_and_insert_app_client(
+        "postman",
+        "postman001",
+        user
+      )
+
+    {:ok, scopes} =
+      AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", app_client.id, user)
+
+    {:ok, secret_key: secret_key, app_client: app_client, scopes: scopes, user: user}
+  end
+
   describe "oauth2 controller test" do
-    test "Should login using client credentials", %{conn: conn} do
-      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
-
-      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
-
-      {:ok, app_client} =
-        AppClientFixture.build_and_insert_app_client(
-          "postman",
-          "postman001",
-          user
-        )
-
-      {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", app_client.id, user)
-
+    test "Should login using client credentials", %{
+      conn: conn,
+      secret_key: secret_key,
+      app_client: app_client,
+      scopes: scopes
+    } do
       body_params = %{"grant_type" => "CLIENT_CREDENTIALS"}
 
       conn = put_req_header(conn, "authorization", "Basic cG9zdG1hbjAwMTpwb3N0bWFuc2VjcmV0MDE=")
@@ -43,21 +52,13 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
       assert conn.status == 200
     end
 
-    test "Should login using user credentials", %{conn: conn} do
-      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
-
-      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
-
-      {:ok, app_client} =
-        AppClientFixture.build_and_insert_app_client(
-          "postman",
-          "postman001",
-          user
-        )
-
-      {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", app_client.id, user)
-
+    test "Should login using user credentials", %{
+      conn: conn,
+      secret_key: secret_key,
+      app_client: app_client,
+      scopes: scopes,
+      user: user
+    } do
       body_params = %{
         "grant_type" => "PASSWORD",
         "username" => "test-username",
@@ -96,20 +97,12 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
       assert_raise(BadRequest, ~r/bad request/, fn -> post(conn, "/login", body_params) end)
     end
 
-    test "Should return same access token when refresh an unexpired access token", %{conn: conn} do
-      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
-      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
-
-      {:ok, client} =
-        AppClientFixture.build_and_insert_app_client(
-          "postman",
-          "postman001",
-          user
-        )
-
-      {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
-
+    test "Should return same access token when refresh an unexpired access token", %{
+      conn: conn,
+      secret_key: secret_key,
+      app_client: client,
+      scopes: scopes
+    } do
       access_token =
         Oauth2Util.build_token(%{grant_type: "CLIENT_CREDENTIALS"}, %{
           client_name: client.client_name,
@@ -157,20 +150,12 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
       assert resp_body_decoded["access_token"] == access_token
     end
 
-    test "Should create new access token when refresh expired access token", %{conn: conn} do
-      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
-      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
-
-      {:ok, client} =
-        AppClientFixture.build_and_insert_app_client(
-          "postman",
-          "postman001",
-          user
-        )
-
-      {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
-
+    test "Should create new access token when refresh expired access token", %{
+      conn: conn,
+      secret_key: secret_key,
+      app_client: client,
+      scopes: scopes
+    } do
       expired_access_token =
         Oauth2Util.build_token(
           %{grant_type: "CLIENT_CREDENTIALS"},
@@ -222,21 +207,11 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
     end
 
     test "Should raise TokenExpiredError when refresh access token with expired refresh token", %{
-      conn: conn
+      conn: conn,
+      secret_key: secret_key,
+      app_client: client,
+      scopes: scopes
     } do
-      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
-      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
-
-      {:ok, client} =
-        AppClientFixture.build_and_insert_app_client(
-          "postman",
-          "postman001",
-          user
-        )
-
-      {:ok, scopes} =
-        AppClientScopeFixture.build_and_insert_app_client_scope("READ,WRITE", client.id, user)
-
       expired_access_token =
         Oauth2Util.build_token(
           %{grant_type: "CLIENT_CREDENTIALS"},
@@ -301,17 +276,12 @@ defmodule EaRestaurantDataLoader.Test.EaRestaurantDataLoaderWeb.Controllers.Oaut
       )
     end
 
-    test "Should raise Unauthorized route when invalid roles", %{conn: conn} do
-      secret_key = Application.get_env(:ea_restaurant_data_loader, :secret_key)
-      {:ok, user} = UserFixture.build_and_insert_user("test-user", "test-username")
-
-      {:ok, client} =
-        AppClientFixture.build_and_insert_app_client(
-          "postman",
-          "postman001",
-          user
-        )
-
+    test "Should raise Unauthorized route when invalid roles", %{
+      conn: conn,
+      secret_key: secret_key,
+      app_client: client,
+      user: user
+    } do
       {:ok, scopes} =
         AppClientScopeFixture.build_and_insert_app_client_scope("NOT", client.id, user)
 
